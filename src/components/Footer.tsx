@@ -1,5 +1,6 @@
 
 import { Heart, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -79,15 +80,15 @@ const Footer = () => {
               © 2024 Nordhilfe Hamburg. Alle Rechte vorbehalten.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link to="/impressum" className="text-gray-400 hover:text-white text-sm transition-colors">
                 Impressum
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              </Link>
+              <Link to="/datenschutz" className="text-gray-400 hover:text-white text-sm transition-colors">
                 Datenschutz
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">
+              </Link>
+              <Link to="/agb" className="text-gray-400 hover:text-white text-sm transition-colors">
                 AGB
-              </a>
+              </Link>
             </div>
           </div>
         </div>
