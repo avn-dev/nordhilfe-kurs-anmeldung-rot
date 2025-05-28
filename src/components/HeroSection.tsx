@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Heart, Shield, Clock } from 'lucide-react';
+import { Heart, Shield, Clock, Award } from 'lucide-react';
 
 const HeroSection = () => {
   const scrollToBooking = () => {
@@ -17,7 +17,7 @@ const HeroSection = () => {
             </h2>
             <p className="text-xl text-gray-700 mb-8 leading-relaxed">
               Lernen Sie in unseren professionellen Erste-Hilfe-Kursen in Hamburg, 
-              wie Sie in Notfallsituationen richtig handeln. Zertifiziert und praxisnah.
+              wie Sie in Notfallsituationen richtig handeln. Zertifiziert und von Führerscheinstellen anerkannt.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -35,7 +35,7 @@ const HeroSection = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="bg-white p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center shadow-md">
                   <Heart className="h-8 w-8 text-primary-500" />
@@ -47,6 +47,12 @@ const HeroSection = () => {
                   <Shield className="h-8 w-8 text-primary-500" />
                 </div>
                 <p className="text-sm font-semibold text-gray-700">Zertifiziert</p>
+              </div>
+              <div className="text-center">
+                <div className="bg-white p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center shadow-md">
+                  <Award className="h-8 w-8 text-primary-500" />
+                </div>
+                <p className="text-sm font-semibold text-gray-700">Führerschein-anerkannt</p>
               </div>
               <div className="text-center">
                 <div className="bg-white p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center shadow-md">
@@ -69,7 +75,7 @@ const HeroSection = () => {
               </h3>
               <p className="text-gray-700 mb-6">
                 Unsere erfahrenen Ausbilder vermitteln Ihnen alle wichtigen 
-                Erste-Hilfe-Maßnahmen in Theorie und Praxis.
+                Erste-Hilfe-Maßnahmen in Theorie und Praxis. Das Zertifikat wird von allen Führerscheinstellen anerkannt.
               </p>
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <span>• 9 Unterrichtseinheiten</span>
