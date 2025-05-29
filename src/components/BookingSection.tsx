@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,8 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar, MapPin, Users, CreditCard, DollarSign } from 'lucide-react';
+import { Calendar, MapPin, Users, CreditCard, DollarSign, CalendarIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const BookingSection = () => {
   const [formData, setFormData] = useState({
@@ -15,10 +18,13 @@ const BookingSection = () => {
     lastName: '',
     email: '',
     phone: '',
+    birthDate: undefined as Date | undefined,
     course: '',
     date: '',
     paymentMethod: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const availableDates = [
     { id: '1', date: '2024-06-15', time: '09:00-17:00', course: 'Erste-Hilfe-Grundkurs', spots: 12 },
@@ -32,7 +38,7 @@ const BookingSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.course || !formData.date || !formData.paymentMethod) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.birthDate || !formData.course || !formData.date || !formData.paymentMethod) {
       toast({
         title: "Fehler",
         description: "Bitte füllen Sie alle Pflichtfelder aus.",
@@ -41,23 +47,44 @@ const BookingSection = () => {
       return;
     }
 
-    // Hier wird später die Verbindung zum Laravel-Backend implementiert
+    setIsSubmitting(true);
+
     try {
-      console.log('Kursbuchung wird an Laravel-Backend gesendet:', formData);
+      console.log('Buchungsanfrage wird an Laravel-Backend gesendet:', {
+        ...formData,
+        birthDate: formData.birthDate?.toISOString().split('T')[0] // Format: YYYY-MM-DD
+      });
       
-      // TODO: API-Call zum Laravel-Backend
-      // const response = await fetch('/api/bookings', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      // POST request an Laravel-Backend
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          ...formData,
+          birthDate: formData.birthDate?.toISOString().split('T')[0]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Fehler bei der Buchungsanfrage');
+      }
+
+      const data = await response.json();
       
       if (formData.paymentMethod === 'paypal') {
-        toast({
-          title: "PayPal-Zahlung wird verarbeitet...",
-          description: "Sie werden zu PayPal weitergeleitet.",
-        });
-        // TODO: PayPal-Integration über Laravel-Backend
+        // PayPal-URL vom Backend erhalten und in neuem Tab öffnen
+        if (data.paypal_url) {
+          window.open(data.paypal_url, '_blank');
+          toast({
+            title: "PayPal-Zahlung",
+            description: "PayPal wurde in einem neuen Tab geöffnet. Schließen Sie die Zahlung dort ab.",
+          });
+        } else {
+          throw new Error('PayPal-URL nicht erhalten');
+        }
       } else {
         toast({
           title: "Anmeldung erfolgreich!",
@@ -65,26 +92,31 @@ const BookingSection = () => {
         });
       }
 
-      // Form zurücksetzen
+      // Form zurücksetzen nach erfolgreicher Buchung
       setFormData({
         firstName: '',
         lastName: '',
         email: '',
         phone: '',
+        birthDate: undefined,
         course: '',
         date: '',
         paymentMethod: ''
       });
+
     } catch (error) {
+      console.error('Buchungsfehler:', error);
       toast({
         title: "Fehler",
         description: "Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -156,93 +188,160 @@ const BookingSection = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Persönliche Daten */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                      Persönliche Daten
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="firstName">Vorname *</Label>
+                        <Input
+                          id="firstName"
+                          value={formData.firstName}
+                          onChange={(e) => handleInputChange('firstName', e.target.value)}
+                          className="mt-1"
+                          required
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="lastName">Nachname *</Label>
+                        <Input
+                          id="lastName"
+                          value={formData.lastName}
+                          onChange={(e) => handleInputChange('lastName', e.target.value)}
+                          className="mt-1"
+                          required
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <Label htmlFor="firstName">Vorname *</Label>
+                      <Label htmlFor="email">E-Mail-Adresse *</Label>
                       <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
                         className="mt-1"
                         required
+                        disabled={isSubmitting}
                       />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="phone">Telefonnummer</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          className="mt-1"
+                          disabled={isSubmitting}
+                        />
+                      </div>
+                      <div>
+                        <Label>Geburtsdatum *</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal mt-1",
+                                !formData.birthDate && "text-muted-foreground"
+                              )}
+                              disabled={isSubmitting}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.birthDate ? (
+                                format(formData.birthDate, "dd.MM.yyyy")
+                              ) : (
+                                <span>Datum wählen</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={formData.birthDate}
+                              onSelect={(date) => handleInputChange('birthDate', date)}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Kursauswahl */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                      Kursauswahl
+                    </h3>
+
                     <div>
-                      <Label htmlFor="lastName">Nachname *</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="mt-1"
+                      <Label htmlFor="course">Kurs auswählen *</Label>
+                      <Select 
+                        onValueChange={(value) => handleInputChange('course', value)} 
                         required
-                      />
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Bitte wählen Sie einen Kurs" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          <SelectItem value="grundkurs">Erste-Hilfe-Grundkurs</SelectItem>
+                          <SelectItem value="fortbildung">Erste-Hilfe-Fortbildung</SelectItem>
+                          <SelectItem value="kind">Erste-Hilfe am Kind</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="date">Termin auswählen *</Label>
+                      <Select 
+                        onValueChange={(value) => handleInputChange('date', value)} 
+                        required
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Bitte wählen Sie einen Termin" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          {availableDates.map((course) => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {formatDate(course.date)} - {course.course}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="email">E-Mail-Adresse *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="mt-1"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">Telefonnummer</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="course">Kurs auswählen *</Label>
-                    <Select onValueChange={(value) => handleInputChange('course', value)} required>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Bitte wählen Sie einen Kurs" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        <SelectItem value="grundkurs">Erste-Hilfe-Grundkurs</SelectItem>
-                        <SelectItem value="fortbildung">Erste-Hilfe-Fortbildung</SelectItem>
-                        <SelectItem value="kind">Erste-Hilfe am Kind</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="date">Termin auswählen *</Label>
-                    <Select onValueChange={(value) => handleInputChange('date', value)} required>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Bitte wählen Sie einen Termin" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white z-50">
-                        {availableDates.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {formatDate(course.date)} - {course.course}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Zahlungsmethode *</Label>
+                  {/* Zahlungsmethode */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+                      Zahlungsmethode
+                    </h3>
+                    
                     <RadioGroup 
                       value={formData.paymentMethod} 
                       onValueChange={(value) => handleInputChange('paymentMethod', value)}
-                      className="mt-3"
+                      className="space-y-3"
+                      disabled={isSubmitting}
                     >
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                      <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                         <RadioGroupItem value="paypal" id="paypal" />
                         <Label htmlFor="paypal" className="flex items-center cursor-pointer flex-1">
-                          <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                          <CreditCard className="h-5 w-5 mr-3 text-blue-600" />
                           <div>
                             <div className="font-medium">PayPal</div>
                             <div className="text-sm text-gray-600">Sofortige Online-Zahlung</div>
@@ -250,10 +349,10 @@ const BookingSection = () => {
                         </Label>
                       </div>
                       
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                      <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                         <RadioGroupItem value="onsite" id="onsite" />
                         <Label htmlFor="onsite" className="flex items-center cursor-pointer flex-1">
-                          <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                          <DollarSign className="h-5 w-5 mr-3 text-green-600" />
                           <div>
                             <div className="font-medium">Bar/EC-Karte vor Ort</div>
                             <div className="text-sm text-gray-600">Zahlung am Kurstag</div>
@@ -266,8 +365,15 @@ const BookingSection = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3 text-lg"
+                    disabled={isSubmitting}
                   >
-                    {formData.paymentMethod === 'paypal' ? 'Jetzt mit PayPal bezahlen' : 'Jetzt anmelden'}
+                    {isSubmitting ? (
+                      'Wird verarbeitet...'
+                    ) : formData.paymentMethod === 'paypal' ? (
+                      'Jetzt mit PayPal bezahlen'
+                    ) : (
+                      'Jetzt anmelden'
+                    )}
                   </Button>
 
                   <p className="text-sm text-gray-600 text-center">
