@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, MapPin, Users } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Calendar, MapPin, Users, CreditCard, DollarSign } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const BookingSection = () => {
@@ -15,7 +16,8 @@ const BookingSection = () => {
     email: '',
     phone: '',
     course: '',
-    date: ''
+    date: '',
+    paymentMethod: ''
   });
 
   const availableDates = [
@@ -27,10 +29,10 @@ const BookingSection = () => {
     { id: '6', date: '2024-07-13', time: '09:00-17:00', course: 'Erste-Hilfe-Fortbildung', spots: 6 }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.course || !formData.date) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.course || !formData.date || !formData.paymentMethod) {
       toast({
         title: "Fehler",
         description: "Bitte füllen Sie alle Pflichtfelder aus.",
@@ -39,23 +41,47 @@ const BookingSection = () => {
       return;
     }
 
-    // Hier würde normalerweise die Anmeldung verarbeitet und eine E-Mail gesendet
-    toast({
-      title: "Anmeldung erfolgreich!",
-      description: "Sie erhalten in Kürze eine Bestätigungs-E-Mail mit allen Details.",
-    });
+    // Hier wird später die Verbindung zum Laravel-Backend implementiert
+    try {
+      console.log('Kursbuchung wird an Laravel-Backend gesendet:', formData);
+      
+      // TODO: API-Call zum Laravel-Backend
+      // const response = await fetch('/api/bookings', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(formData)
+      // });
+      
+      if (formData.paymentMethod === 'paypal') {
+        toast({
+          title: "PayPal-Zahlung wird verarbeitet...",
+          description: "Sie werden zu PayPal weitergeleitet.",
+        });
+        // TODO: PayPal-Integration über Laravel-Backend
+      } else {
+        toast({
+          title: "Anmeldung erfolgreich!",
+          description: "Sie erhalten eine Bestätigungs-E-Mail. Zahlung erfolgt vor Ort.",
+        });
+      }
 
-    console.log('Kursbuchung:', formData);
-    
-    // Form zurücksetzen
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      course: '',
-      date: ''
-    });
+      // Form zurücksetzen
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        course: '',
+        date: '',
+        paymentMethod: ''
+      });
+    } catch (error) {
+      toast({
+        title: "Fehler",
+        description: "Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -81,7 +107,7 @@ const BookingSection = () => {
           </h2>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             Melden Sie sich jetzt für einen unserer Erste-Hilfe-Kurse an. 
-            Nach der Anmeldung erhalten Sie eine Bestätigung per E-Mail.
+            Wählen Sie Ihre bevorzugte Zahlungsmethode.
           </p>
         </div>
 
@@ -206,16 +232,47 @@ const BookingSection = () => {
                     </Select>
                   </div>
 
+                  <div>
+                    <Label>Zahlungsmethode *</Label>
+                    <RadioGroup 
+                      value={formData.paymentMethod} 
+                      onValueChange={(value) => handleInputChange('paymentMethod', value)}
+                      className="mt-3"
+                    >
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem value="paypal" id="paypal" />
+                        <Label htmlFor="paypal" className="flex items-center cursor-pointer flex-1">
+                          <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                          <div>
+                            <div className="font-medium">PayPal</div>
+                            <div className="text-sm text-gray-600">Sofortige Online-Zahlung</div>
+                          </div>
+                        </Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem value="onsite" id="onsite" />
+                        <Label htmlFor="onsite" className="flex items-center cursor-pointer flex-1">
+                          <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                          <div>
+                            <div className="font-medium">Bar/EC-Karte vor Ort</div>
+                            <div className="text-sm text-gray-600">Zahlung am Kurstag</div>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3 text-lg"
                   >
-                    Jetzt anmelden
+                    {formData.paymentMetho === 'paypal' ? 'Jetzt mit PayPal bezahlen' : 'Jetzt anmelden'}
                   </Button>
 
                   <p className="text-sm text-gray-600 text-center">
                     * Pflichtfelder. Nach der Anmeldung erhalten Sie eine Bestätigungs-E-Mail 
-                    mit Zahlungsinformationen und weiteren Details.
+                    mit weiteren Details.
                   </p>
                 </form>
               </CardContent>
