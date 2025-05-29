@@ -267,7 +267,7 @@ const BookingSection = () => {
                     type="submit" 
                     className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3 text-lg"
                   >
-                    {formData.paymentMetho === 'paypal' ? 'Jetzt mit PayPal bezahlen' : 'Jetzt anmelden'}
+                    {formData.paymentMethod === 'paypal' ? 'Jetzt mit PayPal bezahlen' : 'Jetzt anmelden'}
                   </Button>
 
                   <p className="text-sm text-gray-600 text-center">
