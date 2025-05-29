@@ -1,12 +1,8 @@
-
 import { Button } from '@/components/ui/button';
 import { Heart, Shield, Clock, Award } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
-  const scrollToBooking = () => {
-    document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section className="bg-gradient-to-br from-primary-50 to-primary-100 py-20" role="banner">
       <div className="container mx-auto px-4">
@@ -25,11 +21,11 @@ const HeroSection = () => {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Button 
-                onClick={scrollToBooking}
+                asChild
                 className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 text-lg"
                 aria-label="Erste-Hilfe-Kurs jetzt buchen"
               >
-                Jetzt Kurs buchen
+                <Link to="/anmeldung">Jetzt Kurs buchen</Link>
               </Button>
               <Button 
                 variant="outline" 

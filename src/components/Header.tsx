@@ -1,12 +1,9 @@
 
 import { Heart, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Header = () => {
-  const scrollToBooking = () => {
-    document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -37,10 +34,10 @@ const Header = () => {
               </div>
             </div>
             <Button 
-              onClick={scrollToBooking}
+              asChild
               className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2"
             >
-              Jetzt buchen
+              <Link to="/anmeldung">Jetzt buchen</Link>
             </Button>
           </div>
         </div>
