@@ -1,31 +1,26 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, Users, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getCourses } from '@/api';
+import CourseCard from './CourseCard';
 
 const CourseOverview = () => {
-  const courses = [
-    {
-      title: "Erste-Hilfe-Grundkurs",
-      description: "Kompletter Erste-Hilfe-Kurs für Führerschein, Beruf und Alltag",
-      duration: "9 Unterrichtseinheiten (1 Tag)",
-      price: "45€",
-      features: ["Lebensrettende Sofortmaßnahmen", "Herz-Lungen-Wiederbelebung", "Wundversorgung", "Zertifikat"]
-    },
-    {
-      title: "Erste-Hilfe-Fortbildung",
-      description: "Auffrischung für Ersthelfer in Betrieben",
-      duration: "9 Unterrichtseinheiten (1 Tag)",
-      price: "45€",
-      features: ["Auffrischung der Kenntnisse", "Neue Richtlinien", "Praktische Übungen", "Zertifikat"]
-    },
-    {
-      title: "Erste-Hilfe am Kind",
-      description: "Spezielle Erste-Hilfe-Maßnahmen für Säuglinge und Kleinkinder",
-      duration: "9 Unterrichtseinheiten (1 Tag)",
-      price: "50€",
-      features: ["Kindernotfälle", "Reanimation bei Kindern", "Vergiftungen", "Zertifikat"]
-    }
-  ];
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await getCourses();
+        setCourses(data);
+      } catch (err) {
+        setError('Kurse konnten nicht geladen werden.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   return (
     <section className="py-20 bg-gray-50" id="kurse" aria-labelledby="courses-heading">
@@ -35,56 +30,20 @@ const CourseOverview = () => {
             Unsere Erste-Hilfe-Kurse in Hamburg
           </h2>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Wählen Sie den passenden Erste-Hilfe-Kurs für Ihre Bedürfnisse. 
-            Alle Kurse sind behördlich anerkannt und zertifiziert.
+            Wählen Sie den passenden Erste-Hilfe-Kurs für Ihre Bedürfnisse.
           </p>
         </header>
 
-        <div className="grid md:grid-cols-3 gap-8" role="list" aria-label="Verfügbare Erste-Hilfe-Kurse">
-          {courses.map((course, index) => (
-            <article key={index} role="listitem">
-              <Card className="bg-white hover:shadow-xl transition-shadow duration-300 h-full">
-                <CardHeader className="pb-4">
-                  <div className="bg-primary-500 p-3 rounded-lg w-fit mb-4">
-                    <Award className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-900 mb-2">
-                    <h3>{course.title}</h3>
-                  </CardTitle>
-                  <p className="text-gray-600">{course.description}</p>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="space-y-4 mb-6">
-                    <div className="flex items-center text-gray-700">
-                      <Clock className="h-4 w-4 mr-2 text-primary-500" aria-hidden="true" />
-                      <span className="text-sm">{course.duration}</span>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <h4 className="font-semibold text-gray-900 mb-2">Kursinhalte:</h4>
-                      <ul className="space-y-1" role="list">
-                        {course.features.map((feature, idx) => (
-                          <li key={idx} className="text-sm text-gray-600 flex items-center" role="listitem">
-                            <span className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-2" aria-hidden="true"></span>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-primary-500" aria-label={`Preis ${course.price}`}>{course.price}</span>
-                      <span className="text-sm text-gray-500">pro Person</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </article>
-          ))}
-        </div>
+        {loading && <p className="text-center text-gray-500">Kurse werden geladen…</p>}
+        {error && <p className="text-center text-red-500">{error}</p>}
+
+        {!loading && !error && (
+          <div className="grid md:grid-cols-3 gap-8" role="list" aria-label="Kurse">
+            {courses.map((course, index) => (
+              <CourseCard key={course.id} course={course} index={index} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

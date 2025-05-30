@@ -10,8 +10,12 @@ const Footer = () => {
           {/* Logo und Beschreibung */}
           <div className="col-span-1">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="bg-primary-500 p-2 rounded-lg">
-                <Heart className="h-6 w-6 text-white" />
+              <div className="bg-primary-100 p-2 rounded-lg">
+                <img
+                  src="/logo.png"
+                  alt="Nordhilfe Logo"
+                  className="w-6"
+                />
               </div>
               <div>
                 <h3 className="text-xl font-bold">Nordhilfe</h3>
@@ -77,7 +81,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Nordhilfe Hamburg. Alle Rechte vorbehalten.
+              © 2025 Nordhilfe Hamburg. Alle Rechte vorbehalten.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/impressum" className="text-gray-400 hover:text-white text-sm transition-colors">

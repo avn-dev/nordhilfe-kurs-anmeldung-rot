@@ -16,6 +16,9 @@ import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Link } from 'react-router-dom';
+import { getTrainingSessions, getCourses } from '@/api';
+import { useMemo } from 'react';
+
 
 const Anmeldung = () => {
   const [searchParams] = useSearchParams();
@@ -29,23 +32,74 @@ const Anmeldung = () => {
     date: '',
     paymentMethod: ''
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const availableDates = [
-    { id: '1', date: '2024-06-15', time: '09:00-17:00', course: 'Erste-Hilfe-Grundkurs', spots: 12 },
-    { id: '2', date: '2024-06-22', time: '09:00-17:00', course: 'Erste-Hilfe-Grundkurs', spots: 8 },
-    { id: '3', date: '2024-06-25', time: '09:00-17:00', course: 'Erste-Hilfe-Fortbildung', spots: 15 },
-    { id: '4', date: '2024-06-29', time: '09:00-17:00', course: 'Erste-Hilfe am Kind', spots: 10 },
-    { id: '5', date: '2024-07-06', time: '09:00-17:00', course: 'Erste-Hilfe-Grundkurs', spots: 12 },
-    { id: '6', date: '2024-07-13', time: '09:00-17:00', course: 'Erste-Hilfe-Fortbildung', spots: 6 }
-  ];
+  const [availableDates, setAvailableDates] = useState<any[]>([]);
+  const [loadingDates, setLoadingDates] = useState(true);
+
+  useEffect(() => {
+    const fetchDates = async () => {
+      try {
+        const sessions = await getTrainingSessions();
+
+        // Nur Sessions mit freien Plätzen anzeigen
+        const filtered = sessions.filter(
+          (s) =>
+            s.max_participants === null || s.max_participants > s.participants_count
+        );
+        setAvailableDates(filtered);
+      } catch (error) {
+        console.error('Fehler beim Laden der Kurse:', error);
+      } finally {
+        setLoadingDates(false);
+      }
+    };
+
+    fetchDates();
+  }, []);
+
+  useEffect(() => {
+    if (formData.course) {
+      const dates = availableDates
+        .filter((s) => s.course.id.toString() === formData.course)
+        .sort((a, b) =>
+          new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
+        );
+
+      if (dates.length > 0) {
+        setFormData((prev) => ({ ...prev, date: dates[0].id.toString() }));
+      } else {
+        setFormData((prev) => ({ ...prev, date: '' }));
+      }
+    }
+  }, [formData.course, availableDates]);
+
+  const uniqueCourses = useMemo(() => {
+    const map = new Map();
+    for (const session of availableDates) {
+      const courseId = session.course.id;
+      if (!map.has(courseId)) {
+        map.set(courseId, session.course);
+      }
+    }
+    return Array.from(map.values());
+  }, [availableDates]);
+
+  const filteredDates = useMemo(() => {
+    return availableDates.filter(
+      (s) =>
+        !formData.course || s.course.id.toString() === formData.course
+    );
+  }, [availableDates, formData.course]);
+
+
 
   // PayPal-Return-Handling
   useEffect(() => {
     const payment = searchParams.get('payment');
     const bookingId = searchParams.get('booking_id');
-    
+
     if (payment === 'success' && bookingId) {
       toast({
         title: "Zahlung erfolgreich!",
@@ -62,7 +116,7 @@ const Anmeldung = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.birthDate || !formData.course || !formData.date || !formData.paymentMethod) {
       toast({
         title: "Fehler",
@@ -80,10 +134,10 @@ const Anmeldung = () => {
         birthDate: formData.birthDate?.toISOString().split('T')[0],
         returnUrl: window.location.origin + '/anmeldung'
       });
-      
+
       const response = await fetch('/api/bookings', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -99,7 +153,7 @@ const Anmeldung = () => {
       }
 
       const data = await response.json();
-      
+
       if (formData.paymentMethod === 'paypal') {
         if (data.paypal_url) {
           window.location.href = data.paypal_url;
@@ -111,7 +165,7 @@ const Anmeldung = () => {
           title: "Anmeldung erfolgreich!",
           description: "Sie erhalten eine Bestätigungs-E-Mail. Zahlung erfolgt vor Ort.",
         });
-        
+
         setFormData({
           firstName: '',
           lastName: '',
@@ -142,24 +196,24 @@ const Anmeldung = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('de-DE', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('de-DE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="mb-8">
-              <Link 
-                to="/" 
+              <Link
+                to="/"
                 className="inline-flex items-center text-primary-500 hover:text-primary-600 mb-4"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -173,40 +227,7 @@ const Anmeldung = () => {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-12">
-              {/* Verfügbare Termine */}
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Verfügbare Termine</h2>
-                <div className="space-y-4">
-                  {availableDates.map((course) => (
-                    <Card key={course.id} className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-primary-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">{course.course}</h3>
-                            <div className="flex items-center text-gray-600 text-sm mb-1">
-                              <Calendar className="h-4 w-4 mr-2" />
-                              {formatDate(course.date)}
-                            </div>
-                            <div className="flex items-center text-gray-600 text-sm mb-1">
-                              <MapPin className="h-4 w-4 mr-2" />
-                              Nordhilfe Hamburg, Musterstraße 123
-                            </div>
-                            <div className="flex items-center text-gray-600 text-sm">
-                              <Users className="h-4 w-4 mr-2" />
-                              {course.spots} Plätze verfügbar
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-primary-500">{course.time}</div>
-                            <div className="text-sm text-gray-500">Uhrzeit</div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+            <div>
 
               {/* Anmeldeformular */}
               <div>
@@ -223,7 +244,7 @@ const Anmeldung = () => {
                         <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
                           Persönliche Daten
                         </h3>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label htmlFor="firstName">Vorname *</Label>
@@ -318,39 +339,53 @@ const Anmeldung = () => {
                         </h3>
 
                         <div>
-                          <Label htmlFor="course">Kurs auswählen *</Label>
-                          <Select 
-                            onValueChange={(value) => handleInputChange('course', value)} 
+                          <Label htmlFor="course">Kursart auswählen *</Label>
+                          <Select
+                            onValueChange={(value) => handleInputChange('course', value)}
+                            value={formData.course}
                             required
                             disabled={isSubmitting}
                           >
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Bitte wählen Sie einen Kurs" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white z-50">
-                              <SelectItem value="grundkurs">Erste-Hilfe-Grundkurs</SelectItem>
-                              <SelectItem value="fortbildung">Erste-Hilfe-Fortbildung</SelectItem>
-                              <SelectItem value="kind">Erste-Hilfe am Kind</SelectItem>
+                            <SelectContent>
+                              {uniqueCourses.map((course) => (
+                                <SelectItem key={course.id} value={course.id.toString()}>
+                                  {course.name}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
-
                         <div>
-                          <Label htmlFor="date">Termin auswählen *</Label>
-                          <Select 
-                            onValueChange={(value) => handleInputChange('date', value)} 
+                          <Label htmlFor="date">Kurstermin auswählen *</Label>
+                          <Select
+                            onValueChange={(value) => handleInputChange('date', value)}
+                            value={formData.date}
                             required
-                            disabled={isSubmitting}
+                            disabled={!formData.course || loadingDates}
                           >
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Bitte wählen Sie einen Termin" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white z-50">
-                              {availableDates.map((course) => (
-                                <SelectItem key={course.id} value={course.id}>
-                                  {formatDate(course.date)} - {course.course}
-                                </SelectItem>
-                              ))}
+                            <SelectContent>
+                              {filteredDates.length === 0 ? (
+                                <div className="p-2 text-sm text-gray-500">Keine Termine verfügbar</div>
+                              ) : (
+                                filteredDates.map((session) => (
+                                  <SelectItem key={session.id} value={session.id.toString()} className="py-2">
+                                    <div className="flex flex-col text-left">
+                                      <span className="text-sm font-medium text-gray-900">
+                                        {formatDate(session.session_date)} – {session.start_time}–{session.end_time}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {session.location.full_address_with_name}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
@@ -361,9 +396,9 @@ const Anmeldung = () => {
                         <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
                           Zahlungsmethode
                         </h3>
-                        
-                        <RadioGroup 
-                          value={formData.paymentMethod} 
+
+                        <RadioGroup
+                          value={formData.paymentMethod}
                           onValueChange={(value) => handleInputChange('paymentMethod', value)}
                           className="space-y-3"
                           disabled={isSubmitting}
@@ -378,7 +413,7 @@ const Anmeldung = () => {
                               </div>
                             </Label>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <RadioGroupItem value="onsite" id="onsite" />
                             <Label htmlFor="onsite" className="flex items-center cursor-pointer flex-1">
@@ -392,8 +427,8 @@ const Anmeldung = () => {
                         </RadioGroup>
                       </div>
 
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3 text-lg"
                         disabled={isSubmitting}
                       >
@@ -407,7 +442,7 @@ const Anmeldung = () => {
                       </Button>
 
                       <p className="text-sm text-gray-600 text-center">
-                        * Pflichtfelder. Nach der Anmeldung erhalten Sie eine Bestätigungs-E-Mail 
+                        * Pflichtfelder. Nach der Anmeldung erhalten Sie eine Bestätigungs-E-Mail
                         mit weiteren Details.
                       </p>
                     </form>

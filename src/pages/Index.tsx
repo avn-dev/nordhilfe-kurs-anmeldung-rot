@@ -3,6 +3,7 @@ import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import CourseOverview from '@/components/CourseOverview';
 import Footer from '@/components/Footer';
+import AvailableDates from '@/components/AvailableDates';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -12,6 +13,7 @@ const Index = () => {
       <Header />
       <HeroSection />
       <CourseOverview />
+      <AvailableDates />
       
       {/* Call-to-Action Section */}
       <section className="py-20 bg-primary-500">
