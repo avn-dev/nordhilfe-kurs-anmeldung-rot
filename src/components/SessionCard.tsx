@@ -15,6 +15,7 @@ const formatDate = (dateString: string) => {
 
 const SessionCard = ({ session, delay = 0 }: { session: any; delay?: number }) => {
   const { ref, inView } = useInViewAnimation();
+  const isLimited = session.max_participants > 0;
   const spotsLeft = session.max_participants - session.participants_count;
 
   return (
@@ -43,10 +44,12 @@ const SessionCard = ({ session, delay = 0 }: { session: any; delay?: number }) =
                 <MapPin className="h-4 w-4 mr-2" />
                 {session.location.full_address_with_name}
               </div>
-              <div className="flex items-center text-gray-600 text-sm">
-                <Users className="h-4 w-4 mr-2" />
-                {spotsLeft > 0 ? `${spotsLeft} Plätze verfügbar` : 'Keine Plätze verfügbar'}
-              </div>
+              {isLimited && (
+                <div className="flex items-center text-gray-600 text-sm">
+                  <Users className="h-4 w-4 mr-2" />
+                  {spotsLeft > 0 ? `${spotsLeft} Plätze verfügbar` : 'Keine Plätze verfügbar'}
+                </div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-primary-500">
