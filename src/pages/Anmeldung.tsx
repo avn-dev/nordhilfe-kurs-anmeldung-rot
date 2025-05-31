@@ -21,10 +21,10 @@ import { useNavigate } from 'react-router-dom';
 const Anmeldung = () => {
   const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
-    firstName: 'Paypal',
-    lastName: 'Test',
-    email: 'vahap.caliskan@web.de',
-    phone: '017852620',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
     birthDate: undefined,
     course: '',
     date: '',
@@ -111,7 +111,6 @@ const Anmeldung = () => {
             title: "Zahlung erfolgreich!",
             description: "Ihre Buchung wurde bestätigt.",
           });
-          // Verhindert Replay bei Seite-Reload
           navigate('/anmeldung', { replace: true });
         })
         .catch((error) => {
