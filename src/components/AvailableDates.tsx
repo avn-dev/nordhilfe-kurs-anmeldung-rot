@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, MapPin, Users } from 'lucide-react';
-import { getTrainingSessions } from '@/api';
+import { getAvailableTrainingSessions } from '@/api';
 import { motion } from 'framer-motion';
 import { useInViewAnimation } from '@/hooks/useInViewAnimation';
 import SessionCard from './SessionCard';
@@ -14,7 +14,7 @@ const AvailableDates = () => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const sessions = await getTrainingSessions();
+        const sessions = await getAvailableTrainingSessions();
         setAvailableDates(sessions);
       } catch (err) {
         console.error('Fehler beim Laden der Termine:', err);

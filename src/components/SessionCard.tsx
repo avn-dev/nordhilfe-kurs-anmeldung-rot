@@ -41,7 +41,7 @@ const SessionCard = ({ session, delay = 0 }: { session: any; delay?: number }) =
               </div>
               <div className="flex items-center text-gray-600 text-sm mb-1">
                 <MapPin className="h-4 w-4 mr-2" />
-                {session.location.name}, {session.location.address} {session.location.house_number}
+                {session.location.full_address_with_name}
               </div>
               <div className="flex items-center text-gray-600 text-sm">
                 <Users className="h-4 w-4 mr-2" />
