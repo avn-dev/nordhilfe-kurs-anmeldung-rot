@@ -6,15 +6,29 @@ import Footer from '@/components/Footer';
 import AvailableDates from '@/components/AvailableDates';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const Index = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.scrollToTop) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location]);
+
   return (
     <div className="min-h-screen">
       <Header />
       <HeroSection />
-      <CourseOverview />
-      <AvailableDates />
-      
+      <div id="unsere-kurse">
+        <CourseOverview />
+      </div>
+      <div id="verfuegbare-termine">
+        <AvailableDates />
+      </div>
+
       {/* Call-to-Action Section */}
       <section className="py-20 bg-primary-500">
         <div className="container mx-auto px-4 text-center">
@@ -24,7 +38,7 @@ const Index = () => {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Melden Sie sich jetzt an und lernen Sie lebensrettende Maßnahmen von erfahrenen Ausbildern.
           </p>
-          <Button 
+          <Button
             asChild
             size="lg"
             className="bg-white text-primary-500 hover:bg-gray-100 px-8 py-4 text-lg"
@@ -33,7 +47,7 @@ const Index = () => {
           </Button>
         </div>
       </section>
-      
+
       <Footer />
     </div>
   );

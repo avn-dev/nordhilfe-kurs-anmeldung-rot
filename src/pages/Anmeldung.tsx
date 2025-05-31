@@ -82,6 +82,27 @@ const Anmeldung = () => {
     }
   }, [formData.course, availableDates]);
 
+  useEffect(() => {
+    const courseParam = searchParams.get('course');
+    const dateParam = searchParams.get('date');
+
+    if (availableDates.length === 0) return;
+
+    if (courseParam) {
+      const hasCourse = availableDates.some((s) => s.course.id.toString() === courseParam);
+      if (hasCourse) {
+        setFormData((prev) => ({ ...prev, course: courseParam }));
+      }
+    }
+
+    if (dateParam) {
+      const hasDate = availableDates.some((s) => s.id.toString() === dateParam);
+      if (hasDate) {
+        setFormData((prev) => ({ ...prev, date: dateParam }));
+      }
+    }
+  }, [availableDates, searchParams]);
+
   const uniqueCourses = useMemo(() => {
     const map = new Map();
     for (const session of availableDates) {

@@ -1,13 +1,28 @@
 import { useState } from 'react';
 import { Phone, Mail, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsOpen(prev => !prev);
+
+  const handleNavigateAndScroll = (sectionId: string) => {
+    setIsOpen(false); // mobile menu schließen
+    if (pathname === '/') {
+      // wenn bereits auf Startseite, direkt scrollen
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // andernfalls: navigiere zur Startseite und gib das Ziel mit
+      navigate('/', { state: { scrollToId: sectionId } });
+    }
+  };
 
   const showStartseite = pathname !== '/';
   const showBuchen = pathname !== '/anmeldung';
@@ -20,11 +35,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/">
             <div className="flex items-center space-x-3">
-              <img
-                src="/logo.png"
-                alt="Nordhilfe Logo"
-                className="w-12"
-              />
+              <img src="/logo.png" alt="Nordhilfe Logo" className="w-12" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Nordhilfe</h1>
                 <p className="text-sm text-gray-600">Erste-Hilfe-Kurse Hamburg</p>
@@ -34,14 +45,27 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {showStartseite && (
-              <Link
-                to="/"
-                className="text-gray-800 hover:text-primary-600 font-medium transition"
-              >
-                Startseite
-              </Link>
-            )}
+            <Link
+              to="/"
+              state={{ scrollToTop: true }}
+              className="text-gray-800 hover:text-primary-600 font-medium transition"
+            >
+              Startseite
+            </Link>
+
+            <button
+              onClick={() => handleNavigateAndScroll('unsere-kurse')}
+              className="text-gray-800 hover:text-primary-600 font-medium transition"
+            >
+              Unsere Kurse
+            </button>
+
+            <button
+              onClick={() => handleNavigateAndScroll('verfuegbare-termine')}
+              className="text-gray-800 hover:text-primary-600 font-medium transition"
+            >
+              Verfügbare Termine
+            </button>
 
             {showBuchen && (
               <Button
@@ -83,42 +107,53 @@ const Header = () => {
         {isOpen && (
           <div className="md:hidden bg-white px-6 pt-4 pb-6 transition-all">
             <nav className="space-y-4">
-              {showStartseite && (
-                <Link
-                  to="/"
-                  className="block text-gray-800 text-lg hover:text-primary-600 transition"
-                  onClick={toggleMenu}
-                >
-                  Startseite
-                </Link>
-              )}
+              <Link
+                to="/"
+                state={{ scrollToTop: true }}
+                className="block text-gray-800 text-lg hover:text-primary-600 transition"
+                onClick={toggleMenu}
+              >
+                Startseite
+              </Link>
+
+              <button
+                onClick={() => handleNavigateAndScroll('unsere-kurse')}
+                className="block text-gray-800 text-lg hover:text-primary-600 transition"
+              >
+                Unsere Kurse
+              </button>
+
+              <button
+                onClick={() => handleNavigateAndScroll('verfuegbare-termine')}
+                className="block text-gray-800 text-lg hover:text-primary-600 transition"
+              >
+                Verfügbare Termine
+              </button>
 
               {showBuchen && (
-                <Link
-                  to="/anmeldung"
-                  className="block text-gray-800 text-lg hover:text-primary-600 transition"
-                  onClick={toggleMenu}
+                <Button
+                  asChild
+                  className="w-full bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 transition"
                 >
-                  Jetzt buchen
-                </Link>
+                  <Link
+                    to="/anmeldung"
+                  >
+                    Jetzt buchen
+                  </Link>
+                </Button>
               )}
 
-              {hasMobileNavLinks ? (
+              {hasMobileNavLinks && (
                 <div className="mt-4 border-t pt-4 space-y-1 text-sm text-gray-500">
-                  <a href="tel:+4940123456789" className="block hover:text-gray-700">
-                    040 123 456 789
+                  <a href="tel:+4940123456789" className="flex items-center space-x-2 block hover:text-gray-700">
+                    <Phone className="h-4 w-4" />
+                    <span>040 123 456 789</span>
                   </a>
-                  <a href="mailto:info@nordhilfe.hamburg" className="block hover:text-gray-700">
-                    info@nordhilfe.hamburg
-                  </a>
-                </div>
-              ) : (
-                <div className="space-y-1 text-sm text-gray-500">
-                  <a href="tel:+4940123456789" className="block hover:text-gray-700">
-                    040 123 456 789
-                  </a>
-                  <a href="mailto:info@nordhilfe.hamburg" className="block hover:text-gray-700">
-                    info@nordhilfe.hamburg
+                  {/* className="flex items-center space-x-2 text-xs text-gray-500 hover:text-gray-700 transition" */}
+                  <a href="mailto:info@nordhilfe.hamburg" className="flex items-center space-x-2 block hover:text-gray-700">
+
+                    <Mail className="h-4 w-4" />
+                    <span>info@nordhilfe.hamburg</span>
                   </a>
                 </div>
               )}
