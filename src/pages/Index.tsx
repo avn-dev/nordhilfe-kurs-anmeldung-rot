@@ -10,24 +10,12 @@ import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const Index = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    if (location.state?.scrollToTop) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [location]);
-
   return (
     <div className="min-h-screen">
       <Header />
       <HeroSection />
-      <div id="unsere-kurse">
-        <CourseOverview />
-      </div>
-      <div id="verfuegbare-termine">
-        <AvailableDates />
-      </div>
+      <CourseOverview />
+      <AvailableDates />
 
       {/* Call-to-Action Section */}
       <section className="py-20 bg-primary-500">

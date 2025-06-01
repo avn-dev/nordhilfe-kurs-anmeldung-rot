@@ -12,16 +12,7 @@ const Header = () => {
 
   const handleNavigateAndScroll = (sectionId: string) => {
     setIsOpen(false); // mobile menu schließen
-    if (pathname === '/') {
-      // wenn bereits auf Startseite, direkt scrollen
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    } else {
-      // andernfalls: navigiere zur Startseite und gib das Ziel mit
-      navigate('/', { state: { scrollToId: sectionId } });
-    }
+    navigate('/', { state: { scrollToId: sectionId } });
   };
 
   const showStartseite = pathname !== '/';
@@ -54,14 +45,14 @@ const Header = () => {
             </Link>
 
             <button
-              onClick={() => handleNavigateAndScroll('unsere-kurse')}
+              onClick={() => handleNavigateAndScroll('kurse')}
               className="text-gray-800 hover:text-primary-600 font-medium transition"
             >
               Unsere Kurse
             </button>
 
             <button
-              onClick={() => handleNavigateAndScroll('verfuegbare-termine')}
+              onClick={() => handleNavigateAndScroll('booking')}
               className="text-gray-800 hover:text-primary-600 font-medium transition"
             >
               Verfügbare Termine
@@ -117,14 +108,14 @@ const Header = () => {
               </Link>
 
               <button
-                onClick={() => handleNavigateAndScroll('unsere-kurse')}
+                onClick={() => handleNavigateAndScroll('kurse')}
                 className="block text-gray-800 text-lg hover:text-primary-600 transition"
               >
                 Unsere Kurse
               </button>
 
               <button
-                onClick={() => handleNavigateAndScroll('verfuegbare-termine')}
+                onClick={() => handleNavigateAndScroll('booking')}
                 className="block text-gray-800 text-lg hover:text-primary-600 transition"
               >
                 Verfügbare Termine
